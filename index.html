@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Status Tracker</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/react.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/react-dom.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function FleetTracker() {
+            const fleetNumbers = [641, 644, 645, 682, 5400, 5401, 5402, 5403, 5404, 5405, 5406, 5407, 5408, 5409, 5410, 5411, 5412, 5413, 5490, 5492, 5493, 5494, 5495, 5496, 5497, 6043, 6044, 6045, 6046, 6047, 6048, 6072, 6074, 6157, 6177, 6179, 6181, 6182, 6184, 6185, 6190, 6191, 6192, 6195, 6216, 6217, 6218, 6219, 6232, 6233, 6234, 6235, 6236, 6237, 6238, 6239, 6240, 6336, 6337, 6338, 6339, 6340, 6341, 6342, 6343, 6344, 6345, 6346, 6347, 6348, 6349, 6350, 6351, 6949, 6950];
+            const columns = ['Fitted and Working', 'Fitted not Working', 'Fitted no Signal', 'Missing'];
+            const [data, setData] = useState({});
+
+            const handleChange = (fleet, column, value) => {
+                const key = `${fleet}-${column}`;
+                setData(prev => {
+                    const newData = { ...prev };
+                    if (value === 'Yes') {
+                        columns.forEach(col => {
+                            const colKey = `${fleet}-${col}`;
+                            if (col !== column) delete newData[colKey];
+                        });
+                        newData[key] = 'Yes';
+                    } else if (value === 'No') {
+                        delete newData[key];
+                    }
+                    return newData;
+                });
+            };
+
+            const getValue = (fleet, column) => {
+                return data[`${fleet}-${column}`] || '';
+            };
+
+            return (
+                <div className="p-6 bg-gray-50 min-h-screen">
+                    <h1 className="text-3xl font-bold mb-6 text-gray-800">Fleet Status Tracker</h1>
+                    <div className="overflow-x-auto bg-white rounded-lg shadow">
+                        <table className="w-full border-collapse">
+                            <thead>
+                                <tr className="bg-blue-600 text-white">
+                                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Fleet</th>
+                                    {columns.map(col => (
+                                        <th key={col} className="border border-gray-300 px-4 py-3 text-left font-semibold whitespace-nowrap">{col}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {fleetNumbers.map((fleet, idx) => (
+                                    <tr key={fleet} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                        <td className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">{fleet}</td>
+                                        {columns.map(col => (
+                                            <td key={`${fleet}-${col}`} className="border border-gray-300 px-4 py-3">
+                                                <select value={getValue(fleet, col)} onChange={(e) => handleChange(fleet, col, e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                    <option value="">--</option>
+                                                    <option value="Yes">Yes</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<FleetTracker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
