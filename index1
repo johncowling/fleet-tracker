@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Status Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f3f4f6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 24px;
+        }
+        
+        .table-wrapper {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #d1d5db;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+        
+        td {
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        tbody tr:nth-child(odd) {
+            background-color: white;
+        }
+        
+        .fleet-cell {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background-color: white;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        select:focus {
+            outline: none;
+            ring: 2px solid #2563eb;
+            border-color: #2563eb;
+        }
+        
+        .info-box {
+            background-color: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+            color: #1e40af;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fleet Status Tracker</h1>
+        
+        <div class="table-wrapper">
+            <table id="fleetTable">
+                <thead>
+                    <tr>
+                        <th>Fleet</th>
+                        <th>Fitted and Working</th>
+                        <th>Fitted not Working</th>
+                        <th>Fitted no Signal</th>
+                        <th>Missing</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="info-box">
+            <strong>Note:</strong> Each fleet can only have one status. Selecting "Yes" in any column will automatically clear the others for that fleet.
+        </div>
+    </div>
+
+    <script>
+        const fleetNumbers = [641, 644, 645, 682, 5400, 5401, 5402, 5403, 5404, 5405, 5406, 5407, 5408, 5409, 5410, 5411, 5412, 5413, 5490, 5492, 5493, 5494, 5495, 5496, 5497, 6043, 6044, 6045, 6046, 6047, 6048, 6072, 6074, 6157, 6177, 6179, 6181, 6182, 6184, 6185, 6190, 6191, 6192, 6195, 6216, 6217, 6218, 6219, 6232, 6233, 6234, 6235, 6236, 6237, 6238, 6239, 6240, 6336, 6337, 6338, 6339, 6340, 6341, 6342, 6343, 6344, 6345, 6346, 6347, 6348, 6349, 6350, 6351, 6949, 6950];
+        const columns = ['Fitted and Working', 'Fitted not Working', 'Fitted no Signal', 'Missing'];
+        const data = {};
+
+        function createTableRows() {
+            const tbody = document.getElementById('tableBody');
+            
+            fleetNumbers.forEach(fleet => {
+                const row = document.createElement('tr');
+                
+                const fleetCell = document.createElement('td');
+                fleetCell.className = 'fleet-cell';
+                fleetCell.textContent = fleet;
+                row.appendChild(fleetCell);
+                
+                columns.forEach(column => {
+                    const cell = document.createElement('td');
+                    const select = document.createElement('select');
+                    
+                    const optionEmpty = document.createElement('option');
+                    optionEmpty.value = '';
+                    optionEmpty.textContent = '--';
+                    select.appendChild(optionEmpty);
+                    
+                    const optionYes = document.createElement('option');
+                    optionYes.value = 'Yes';
+                    optionYes.textContent = 'Yes';
+                    select.appendChild(optionYes);
+                    
+                    const optionNo = document.createElement('option');
+                    optionNo.value = 'No';
+                    optionNo.textContent = 'No';
+                    select.appendChild(optionNo);
+                    
+                    select.addEventListener('change', (e) => handleChange(fleet, column, e.target.value));
+                    
+                    cell.appendChild(select);
+                    row.appendChild(cell);
+                });
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function handleChange(fleet, column, value) {
+            const key = `${fleet}-${column}`;
+            
+            if (value === 'Yes') {
+                columns.forEach(col => {
+                    const colKey = `${fleet}-${col}`;
+                    if (col !== column) {
+                        data[colKey] = '';
+                    }
+                });
+                data[key] = 'Yes';
+                updateUI(fleet);
+            } else if (value === 'No') {
+                data[key] = '';
+                updateUI(fleet);
+            }
+        }
+
+        function updateUI(fleet) {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const fleetCell = row.querySelector('.fleet-cell');
+                if (parseInt(fleetCell.textContent) === fleet) {
+                    const selects = row.querySelectorAll('select');
+                    selects.forEach((select, idx) => {
+                        const column = columns[idx];
+                        const key = `${fleet}-${column}`;
+                        select.value = data[key] || '';
+                    });
+                }
+            });
+        }
+
+        // Initialize table
+        createTableRows();
+    </script>
+</body>
+</html>
